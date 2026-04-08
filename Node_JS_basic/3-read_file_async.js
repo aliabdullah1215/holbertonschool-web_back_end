@@ -16,7 +16,7 @@ function countStudents(path) {
       for (const line of students) {
         const parts = line.split(',');
         const firstname = parts[0];
-        const field = parts[3];
+        const field = parts[3].trim(); // 🔥 الحل هنا
 
         if (!fields[field]) {
           fields[field] = [];
