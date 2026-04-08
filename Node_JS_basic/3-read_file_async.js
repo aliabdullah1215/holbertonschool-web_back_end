@@ -2,44 +2,41 @@ const fs = require('fs');
 
 function countStudents(path) {
     return new Promise((resolve, reject) => {
-        // قراءة الملف بشكل غير متزامن
-        fs.readFile(path, 'utf8', (err, data) => {
-            if (err) {
-                reject(new Error('Cannot load the database'));
+        fs.readFile(path, 'utf8', (error, data) => {
+            if (error) {
+                reject(Error('Cannot load the database'));
                 return;
             }
 
-            // تقسيم الملف إلى أسطر وتجاهل الأسطر الفارغة
-            const lines = data.split('\n').filter(line => line.trim() !== '');
+            const lines = data.split('\n');
+            const students = lines.filter(line => line.trim() !== '');
             
-            // إزالة رأس العمود (first line)
-            const students = lines.slice(1);
+            // إزالة رأس الجدول
+            students.shift();
             
-            if (students.length === 0) {
-                console.log('Number of students: 0');
-                resolve();
-                return;
-            }
-
-            console.log(`Number of students: ${students.length}`);
-
-            // تجميع الطلاب حسب المجال
+            const numberOfStudents = students.length;
+            console.log(`Number of students: ${numberOfStudents}`);
+            
             const fields = {};
             
             for (const student of students) {
-                const [firstname, , , field] = student.split(',');
+                const studentData = student.split(',');
+                const firstName = studentData[0];
+                const field = studentData[3];
                 
                 if (!fields[field]) {
                     fields[field] = [];
                 }
-                fields[field].push(firstname);
+                fields[field].push(firstName);
             }
-
-            // طباعة كل مجال
-            for (const [field, names] of Object.entries(fields)) {
-                console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+            
+            for (const field in fields) {
+                if (fields.hasOwnProperty(field)) {
+                    const names = fields[field];
+                    console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+                }
             }
-
+            
             resolve();
         });
     });
