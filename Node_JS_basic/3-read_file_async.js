@@ -1,41 +1,48 @@
 const fs = require('fs');
 
 function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, 'utf8', (err, data) => {
-      if (err) {
-        reject(new Error('Cannot load the database'));
-        return;
-      }
+    return new Promise((resolve, reject) => {
+        // قراءة الملف بشكل غير متزامن
+        fs.readFile(path, 'utf8', (err, data) => {
+            if (err) {
+                reject(new Error('Cannot load the database'));
+                return;
+            }
 
-      const lines = data.split(/\r?\n/).filter((line) => line.trim() !== '');
-      const students = lines.slice(1);
-      const fields = {};
+            // تقسيم الملف إلى أسطر وتجاهل الأسطر الفارغة
+            const lines = data.split('\n').filter(line => line.trim() !== '');
+            
+            // إزالة رأس العمود (first line)
+            const students = lines.slice(1);
+            
+            if (students.length === 0) {
+                console.log('Number of students: 0');
+                resolve();
+                return;
+            }
 
-      for (const line of students) {
-        const parts = line.split(',');
-        const firstname = parts[0];
-        const field = parts[3];
+            console.log(`Number of students: ${students.length}`);
 
-        if (!fields[field]) {
-          fields[field] = [];
-        }
+            // تجميع الطلاب حسب المجال
+            const fields = {};
+            
+            for (const student of students) {
+                const [firstname, , , field] = student.split(',');
+                
+                if (!fields[field]) {
+                    fields[field] = [];
+                }
+                fields[field].push(firstname);
+            }
 
-        fields[field].push(firstname);
-      }
+            // طباعة كل مجال
+            for (const [field, names] of Object.entries(fields)) {
+                console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+            }
 
-      console.log(`Number of students: ${students.length}`);
-
-      Object.keys(fields).forEach((field) => {
-        const list = fields[field].join(', ');
-        console.log(
-          `Number of students in ${field}: ${fields[field].length}. List: ${list}`
-        );
-      });
-
-      resolve();
+            resolve();
+        });
     });
-  });
 }
 
 module.exports = countStudents;
