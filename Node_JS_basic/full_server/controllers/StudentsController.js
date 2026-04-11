@@ -1,20 +1,22 @@
-import readDatabase from '../utils';
+const { readDatabase } = require('../utils');
 
 class StudentsController {
   static getAllStudents(req, res) {
-    const database = process.argv[2];
+    const filePath = process.argv[2];
 
-    readDatabase(database)
-      .then((fields) => {
-        let output = 'This is the list of our students';
+    readDatabase(filePath)
+      .then((students) => {
+        const sortedFields = Object.keys(students).sort((a, b) =>
+          a.toLowerCase().localeCompare(b.toLowerCase())
+        );
 
-        const sortedFields = Object.keys(fields).sort();
+        let response = 'This is the list of our students\n';
 
         sortedFields.forEach((field) => {
-          output += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
+          response += `Number of students in ${field}: ${students[field].length}. List: ${students[field].join(', ')}\n`;
         });
 
-        res.status(200).send(output);
+        res.status(200).send(response.trim());
       })
       .catch(() => {
         res.status(500).send('Cannot load the database');
@@ -22,17 +24,17 @@ class StudentsController {
   }
 
   static getAllStudentsByMajor(req, res) {
-    const database = process.argv[2];
-    const major = req.params.major;
+    const filePath = process.argv[2];
+    const { major } = req.params;
 
     if (major !== 'CS' && major !== 'SWE') {
       res.status(500).send('Major parameter must be CS or SWE');
       return;
     }
 
-    readDatabase(database)
-      .then((fields) => {
-        const list = fields[major];
+    readDatabase(filePath)
+      .then((students) => {
+        const list = students[major] || [];
         res.status(200).send(`List: ${list.join(', ')}`);
       })
       .catch(() => {
@@ -41,4 +43,4 @@ class StudentsController {
   }
 }
 
-export default StudentsController;
+module.exports = StudentsController;
